@@ -54,6 +54,25 @@ namespace SandboxMode
                     recipe.m_notCraftable = false;
                 }
             }
+            [HarmonyPatch(typeof(GameMenu), nameof(GameMenu.StartLoad))]
+            [HarmonyPostfix]
+            public static void UnlockResearchAndSetCraftableOnLoad()
+            {
+                Log.LogInfo("Unlocking Research and setting craft status");
+                foreach (ResearchData research in DatabaseManager.I.m_researchDatabase.researches)
+                {
+                    ResearchBanner.m_showBanner = false;
+                    {
+                        ResearchManager.I.ConfirmCompleteResearch(research);
+                    }
+                    ResearchBanner.m_showBanner = true;
+                }
+
+                foreach (RecipeData recipe in DatabaseManager.I.m_recipeDatabase.recipes)
+                {
+                    recipe.m_notCraftable = false;
+                }
+            }
 
             [HarmonyPatch(typeof(StructureUtils), nameof(StructureUtils.BlockOpposingPlaneBuilding))]
             [HarmonyPostfix]
