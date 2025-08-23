@@ -1,0 +1,83 @@
+﻿using BepInEx;
+using BepInEx.Logging;
+using Data;
+using DG.Tweening;
+using HarmonyLib;
+using Motemancer;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Numerics;
+using System.Xml;
+using UnityEngine;
+
+namespace SandboxMode
+{
+    [BepInPlugin(GUID, NAME, VERSION)]
+    public class SandboxModeMod : BaseUnityPlugin
+    {
+        private const string GUID = "nc.motemancermods.sandboxmode";
+        private const string NAME = "sandbox mode enabler";
+        private const string VERSION = "1.0.0.0";
+
+        internal static ManualLogSource Log;
+
+        private readonly Harmony harmony = new Harmony(GUID);
+
+        private void Awake()
+        {
+            Log = Logger;
+            harmony.PatchAll();
+        }
+
+
+        [HarmonyPatch]
+        public static class EnableSandboxMode
+        {
+            [HarmonyPatch(typeof(SceneManager), nameof(SceneManager.SkipTutorial))]
+            [HarmonyPostfix]
+            public static void UnlockResearchAndSetCraftable()
+            {
+                Log.LogInfo("Unlocking Research and setting craft status");
+                foreach (ResearchData research in DatabaseManager.I.m_researchDatabase.researches)
+                {
+                    ResearchBanner.m_showBanner = false;
+                    {
+                        ResearchManager.I.ConfirmCompleteResearch(research);
+                    }
+                    ResearchBanner.m_showBanner = true;
+                }
+
+                foreach(RecipeData recipe in DatabaseManager.I.m_recipeDatabase.recipes)
+                {
+                    recipe.m_notCraftable = false;
+                }
+            }
+
+            [HarmonyPatch(typeof(StructureUtils), nameof(StructureUtils.BlockOpposingPlaneBuilding))]
+            [HarmonyPostfix]
+            public static void BuildEverywhere(ref bool __result)
+            {
+                __result = false;
+            }
+
+            [HarmonyPatch(typeof(CraftCount), nameof(CraftCount.CalculateCraftableQuantity))]
+            [HarmonyPrefix]
+            public static bool MaxCraft(ref int __result)
+            {
+                __result = int.MaxValue;
+                return false;
+            }
+
+
+            [HarmonyPatch(typeof(CraftingCorner), nameof(CraftingCorner.CraftItem))]
+            [HarmonyPrefix]
+            public static bool AddInventory(EntityData entity, int count)
+            {
+                Player.I.PlayerInventory.AddEntity(entity, count, false);
+                return false;
+            }
+        }
+    }
+}
