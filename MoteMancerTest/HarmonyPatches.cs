@@ -108,7 +108,7 @@ namespace SandboxMode
                     index = __instance.m_currentRotationIndex;
                 }
 
-                if (structureData.m_visuals[index] != null)
+                if (structureData.m_visuals[index].m_visual is null)
                 {
                     return false;
                 }
