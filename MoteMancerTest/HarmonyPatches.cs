@@ -13,11 +13,14 @@ using System.Reflection;
 using System.Xml;
 using UnityEngine;
 
+
 namespace SandboxMode
 {
     [BepInPlugin(GUID, NAME, VERSION)]
+
     public class SandboxModeMod : BaseUnityPlugin
     {
+        
         private const string GUID = "nc.motemancermods.sandboxmode";
         private const string NAME = "sandbox mode enabler";
         private const string VERSION = "1.0.0.1";
