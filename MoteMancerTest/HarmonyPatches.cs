@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
+using System.Reflection;
 using System.Xml;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace SandboxMode
     {
         private const string GUID = "nc.motemancermods.sandboxmode";
         private const string NAME = "sandbox mode enabler";
-        private const string VERSION = "1.0.0.0";
+        private const string VERSION = "1.0.0.1";
 
         internal static ManualLogSource Log;
 
@@ -96,6 +97,25 @@ namespace SandboxMode
             {
                 Player.I.PlayerInventory.AddEntity(entity, count, false);
                 return false;
+            }
+
+            [HarmonyPatch(typeof(StructurePreview), nameof(StructurePreview.SetImage))]
+            [HarmonyPrefix]
+            public static bool FixRotationNullError(StructureData structureData, int index, StructurePreview __instance)
+            {
+                if (index == -1)
+                {
+                    index = __instance.m_currentRotationIndex;
+                }
+
+                if (structureData.m_visuals[index] != null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
     }
