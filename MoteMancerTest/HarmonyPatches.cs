@@ -48,7 +48,7 @@ namespace SandboxMode
                 {
                     ResearchBanner.m_showBanner = false;
                     {
-                        ResearchManager.I.ConfirmCompleteResearch(research);
+                        ResearchManager.I.ConfirmCompleteResearch(research, true);
                     }
                     ResearchBanner.m_showBanner = true;
                 }
@@ -98,27 +98,8 @@ namespace SandboxMode
             [HarmonyPrefix]
             public static bool AddInventory(EntityData entity, int count)
             {
-                Player.I.PlayerInventory.AddEntity(entity, count, false);
+                Player.I.PlayerInventory.AddEntityToFirstAvailable(entity, count, false, false);
                 return false;
-            }
-
-            [HarmonyPatch(typeof(StructurePreview), nameof(StructurePreview.SetImage))]
-            [HarmonyPrefix]
-            public static bool FixRotationNullError(StructureData structureData, int index, StructurePreview __instance)
-            {
-                if (index == -1)
-                {
-                    index = __instance.m_currentRotationIndex;
-                }
-
-                if (structureData.m_visuals[index].m_visual is null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
             }
         }
     }
