@@ -3,35 +3,30 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <FileVersion>1.0.0.1</FileVersion>
+    <FileVersion>1.0.0.2</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\BepInEx\core\0Harmony.dll</HintPath>
-    </Reference>
+    <PackageReference Include="HarmonyX" Version="2.16.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\MoteMancer_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="BepInEx">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\BepInEx\core\BepInEx.dll</HintPath>
-    </Reference>
-    <Reference Include="DOTween">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\MoteMancer_Data\Managed\DOTween.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\MoteMancer_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="HarmonySupport">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\3320980\3690921150\HarmonySupport.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\MoteMancer_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\MoteMancer_Data\Managed\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\MoteMancer\MoteMancer_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(TargetDir)SandboxMode.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\MoteMancer\BepInEx\plugins&quot;" />
+    <Exec Command="copy &quot;$(TargetDir)SandboxMode.dll&quot; &quot;C:\Users\Nicole Cummings\Documents\My Games\MoteMancer\Mods\SandboxMode&quot;" />
   </Target>
 
 </Project>

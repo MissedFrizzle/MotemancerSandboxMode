@@ -1,106 +1,88 @@
-﻿using BepInEx;
-using BepInEx.Logging;
-using Data;
-using DG.Tweening;
-using HarmonyLib;
-using Motemancer;
+﻿using Data;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Numerics;
-using System.Reflection;
-using System.Xml;
+using HarmonyLib;
 using UnityEngine;
+using System.Linq;
 
-
-namespace SandboxMode
-{
-    [BepInPlugin(GUID, NAME, VERSION)]
-
-    public class SandboxModeMod : BaseUnityPlugin
+public class SandboxModePatcher
     {
-        
-        private const string GUID = "nc.motemancermods.sandboxmode";
-        private const string NAME = "sandbox mode enabler";
-        private const string VERSION = "1.0.0.1";
+        private List<string> uncraftableRecipes = new List<string>();
+        private HarmonySupport m_harmonySupport;
 
-        internal static ManualLogSource Log;
-
-        private readonly Harmony harmony = new Harmony(GUID);
-
-        private void Awake()
+        public void OnEnable(Dictionary<string, object> dependencies)
         {
-            Log = Logger;
-            harmony.PatchAll();
-        }
-
-
-        [HarmonyPatch]
-        public static class EnableSandboxMode
-        {
-            [HarmonyPatch(typeof(SceneManager), nameof(SceneManager.SkipTutorial))]
-            [HarmonyPostfix]
-            public static void UnlockResearchAndSetCraftable()
+            if (!dependencies.TryGetValue("harmony_support", out var harmonySupportObj))
             {
-                Log.LogInfo("Unlocking Research and setting craft status");
-                foreach (ResearchData research in DatabaseManager.I.m_researchDatabase.researches)
+                throw new Exception("harmony_support not found");
+            }
+
+            m_harmonySupport = (HarmonySupport)harmonySupportObj;
+            m_harmonySupport.PatchAll("SandboxMode", typeof(SandboxMode).Assembly);
+            foreach (RecipeData recipe in DatabaseManager.I.m_recipeDatabase.recipes)
+            {  
+                if (recipe.m_notCraftable)
                 {
-                    ResearchBanner.m_showBanner = false;
-                    {
-                        ResearchManager.I.ConfirmCompleteResearch(research, true);
-                    }
-                    ResearchBanner.m_showBanner = true;
+                    recipe.m_notCraftable = false;                    
+                    uncraftableRecipes.Add(recipe.name);
+                    Debug.Log($"set craftable {recipe.name}");
                 }
-
-                foreach(RecipeData recipe in DatabaseManager.I.m_recipeDatabase.recipes)
-                {
-                    recipe.m_notCraftable = false;
-                }
+                
             }
-            [HarmonyPatch(typeof(GameMenu), nameof(GameMenu.StartLoad))]
-            [HarmonyPostfix]
-            public static void UnlockResearchAndSetCraftableOnLoad()
-            {
-                Log.LogInfo("Unlocking Research and setting craft status");
-                foreach (ResearchData research in DatabaseManager.I.m_researchDatabase.researches)
-                {
-                    ResearchBanner.m_showBanner = false;
-                    {
-                        ResearchManager.I.ConfirmCompleteResearch(research);
-                    }
-                    ResearchBanner.m_showBanner = true;
-                }
-
-                foreach (RecipeData recipe in DatabaseManager.I.m_recipeDatabase.recipes)
-                {
-                    recipe.m_notCraftable = false;
-                }
-            }
-
-            [HarmonyPatch(typeof(StructureUtils), nameof(StructureUtils.BlockOpposingPlaneBuilding))]
-            [HarmonyPostfix]
-            public static void BuildEverywhere(ref bool __result)
-            {
-                __result = false;
-            }
-
-            [HarmonyPatch(typeof(CraftCount), nameof(CraftCount.CalculateCraftableQuantity))]
-            [HarmonyPrefix]
-            public static bool MaxCraft(ref int __result)
-            {
-                __result = int.MaxValue;
-                return false;
-            }
-
-
-            [HarmonyPatch(typeof(CraftingCorner), nameof(CraftingCorner.CraftItem))]
-            [HarmonyPrefix]
-            public static bool AddInventory(EntityData entity, int count)
-            {
-                Player.I.PlayerInventory.AddEntityToFirstAvailable(entity, count, false, false);
-                return false;
-            }
-        }
+            Debug.Log($"onenable called, {uncraftableRecipes.Count} recipes were set");
     }
+
+        public void OnDisable()
+        {
+            Debug.Log($"ondisable called, {uncraftableRecipes.Count} recipes to unset");
+            foreach (RecipeData recipe in DatabaseManager.I.m_recipeDatabase.recipes)
+            {
+                
+                if (uncraftableRecipes.Contains(recipe.name))
+                {
+                    recipe.m_notCraftable = true;
+                    Debug.Log($"set uncraftable {recipe.name}");
+                }
+
+            }
+            uncraftableRecipes.Clear();
+            m_harmonySupport.UnpatchAll("SandboxMode");
+            
+        }
+
+    }
+
+    [HarmonyPatch]
+    public static class SandboxMode
+    {
+        [HarmonyPatch(typeof(SceneManager), nameof(SceneManager.SkipTutorial))]
+        [HarmonyPostfix]
+        public static void UnlockResearchAndSetCraftable()
+        {
+            foreach (ResearchData research in DatabaseManager.I.m_researchDatabase.researches)
+            {
+                ResearchBanner.m_showBanner = false;
+                {
+                    ResearchManager.I.ConfirmCompleteResearch(research, true);
+                }
+                ResearchBanner.m_showBanner = true;
+            }
+        }
+
+        [HarmonyPatch(typeof(CraftCount), nameof(CraftCount.CalculateCraftableQuantity))]
+        [HarmonyPrefix]
+        public static bool MaxCraft(ref int __result)
+        {
+            __result = int.MaxValue;
+            return false;
+        }
+
+
+        [HarmonyPatch(typeof(CraftingCorner), nameof(CraftingCorner.CraftItem))]
+        [HarmonyPrefix]
+        public static bool AddInventory(EntityData entity, int count)
+        {
+            Player.I.PlayerInventory.AddEntityToFirstAvailable(entity, count, false, false);
+            return false;
+        }
 }
